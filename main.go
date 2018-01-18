@@ -14,9 +14,10 @@ import (
 	"github.com/urfave/cli"
 )
 
-var (
-	iterations float64
-)
+type Args struct {
+	prefix string
+	count  int
+}
 
 func main() {
 	app := cli.NewApp()
@@ -36,23 +37,32 @@ func main() {
 	}
 	app.Action = func(c *cli.Context) {
 
-		iterations = estimatedIterations(c.String("prefix"))
+		args := Args{
+			prefix: c.String("prefix"),
+			count:  c.Int("count"),
+		}
 
-		fmt.Println("Estimated number of iterations needed:", int(iterations))
-		for i := 0; i < c.Int("count") || c.Int("count") == 0; i++ {
-			seed, addr, err := generateVanityAddress(c.String("prefix"))
-			if err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
-			}
-			fmt.Printf(`Found matching address!
+		run(&args)
+	}
+	app.Run(os.Args)
+}
+
+func run(args *Args) {
+	iterations := estimatedIterations(args.prefix)
+
+	fmt.Println("Estimated number of iterations needed:", iterations)
+	for i := 0; i < args.count || args.count == 0; i++ {
+		seed, addr, err := generateVanityAddress(args.prefix)
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+		fmt.Printf(`Found matching address!
 Seed: %s
 Address: %s
 
 `, strings.ToUpper(seed), addr)
-		}
 	}
-	app.Run(os.Args)
 }
 
 func estimatedIterations(prefix string) float64 {
