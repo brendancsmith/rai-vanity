@@ -18,4 +18,6 @@ var regexCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(regexCmd)
+
+	substringCmd.Flags().IntP("count", "c", 1, "Number of valid addresses to generate before exiting, or 0 for infinite.")
 }
