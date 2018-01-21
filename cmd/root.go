@@ -13,7 +13,7 @@ var rootCmd = &cobra.Command{
 	Short:            "A vanity address generator for RaiBlocks",
 	Long:             "Generate wallet seeds with desirable public addresses. Try `rai-vanity substring \"xrb\"`",
 	TraverseChildren: true,
-	Version:          "0.2.0",
+	Version:          "0.1.0",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
