@@ -30,10 +30,10 @@ func Index(vs []string, t string) int {
 	return -1
 }
 
-// Include :
+// Contains :
 // Returns `true` if the target string t is in the
 // slice.
-func Include(vs []string, t string) bool {
+func Contains(vs []string, t string) bool {
 	return Index(vs, t) >= 0
 }
 

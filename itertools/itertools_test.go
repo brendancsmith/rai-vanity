@@ -2,8 +2,8 @@ package itertools
 
 import (
 	"reflect"
+	"strings"
 	"testing"
-	"string"
 )
 
 func TestIndex(t *testing.T) {
@@ -27,7 +27,7 @@ func TestIndex(t *testing.T) {
 	}
 }
 
-func TestInclude(t *testing.T) {
+func TestContains(t *testing.T) {
 	type args struct {
 		vs []string
 		t  string
@@ -41,8 +41,8 @@ func TestInclude(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Include(tt.args.vs, tt.args.t); got != tt.want {
-				t.Errorf("Include() = %v, want %v", got, tt.want)
+			if got := Contains(tt.args.vs, tt.args.t); got != tt.want {
+				t.Errorf("Contains() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -100,7 +100,14 @@ func TestFilter(t *testing.T) {
 		args args
 		want []string
 	}{
-	// TODO: Add test cases.
+		{
+			"RemoveEmpty",
+			args{
+				[]string{"foo", "", "bar"},
+				func(s string) bool { return s != "" },
+			},
+			[]string{"foo", "bar"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -122,9 +129,21 @@ func TestMap(t *testing.T) {
 		want []string
 	}{
 		{
-		"trim",
-		args{[]string{"1 "," 2 "," 3"}, func(s string) string { return strings.TrimSpace(s)}},
-		[]string{"1","2","3"}
+			"TrimSpace",
+			args{
+				[]string{"1 ", " 2 ", " 3"},
+				func(s string) string { return strings.TrimSpace(s) },
+			},
+			[]string{"1", "2", "3"},
+		},
+		{
+			"Lowercase",
+			args{
+				[]string{"A", "B", "C"},
+				func(s string) string { return strings.ToLower(s) },
+			},
+			[]string{"a", "b", "c"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
