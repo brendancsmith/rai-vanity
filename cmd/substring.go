@@ -1,13 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 
-	"github.com/brendancsmith/rai-vanity/rai"
+	"github.com/brendancsmith/rai-vanity/app"
+	"github.com/frankh/rai/address"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +31,43 @@ var substringCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("substring cmd called")
-		findSubstring(argSubstring, optIndex, optWildcardIndex, optCount)
+
+		var predicate app.StringPredicate
+
+		if optWildcardIndex {
+			predicate = func(address string) bool {
+				return strings.Contains(address, argSubstring)
+			}
+		} else {
+			length := len(argSubstring)
+			predicate = func(address string) bool {
+				return (address[optIndex:optIndex+length] == argSubstring)
+			}
+		}
+
+		// TODO: cancel on count
+		ctx := context.Background()
+
+		ch, err := app.GenerateSeeds(ctx, predicate)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go func() {
+			seed := <-ch
+
+			pub, _ := address.KeypairFromSeed(seed, 0)
+			account := address.PubKeyToAddress(pub)
+
+			if !address.ValidateAddress(account) {
+				// TODO: panic here?
+				log.Fatal("Address generated had an invalid checksum!\nPlease create an issue on github: https://github.com/frankh/rai-vanity")
+			}
+
+			log.Println("Found matching address!")
+			log.Printf("Seed: %s\n", strings.ToUpper(seed))
+			log.Printf("Address: %s\n", account)
+		}()
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 
@@ -65,22 +103,4 @@ func init() {
 		"\t\"-1\" will match at the end of the address.")
 
 	substringCmd.Flags().IntVarP(&flagCount, "count", "c", 1, "Number of valid addresses to generate before exiting, or 0 for infinite.")
-}
-
-func findSubstring(substring string, index int, wildcardIndex bool, count int) {
-	iterations := rai.EstimateIterations(substring, index)
-
-	fmt.Println("Count:", count)
-
-	fmt.Println("Estimated number of iterations needed:", iterations)
-	for i := 0; i < count || count == 0; i++ {
-		seed, addr, err := rai.GenerateVanityAddress(substring, index, iterations)
-		if err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
-		}
-		fmt.Println("Found matching address!")
-		fmt.Printf("Seed: %s\n", strings.ToUpper(seed))
-		fmt.Printf("Address: %s\n", addr)
-	}
 }
