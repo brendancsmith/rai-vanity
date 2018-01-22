@@ -33,6 +33,8 @@ var substringCmd = &cobra.Command{
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 
+		argSubstring = args[0]
+
 		if flagIndex == "*" {
 			optWildcardIndex = true
 			optIndex = 0
@@ -43,11 +45,13 @@ var substringCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+
+			if optIndex == -1 {
+				optIndex = 64 - len(argSubstring)
+			}
 		}
 
 		optCount = int(math.Max(0, float64(flagCount)))
-
-		argSubstring = args[0]
 
 		return nil
 	},
@@ -61,7 +65,6 @@ func init() {
 		"\t\"-1\" will match at the end of the address.")
 
 	substringCmd.Flags().IntVarP(&flagCount, "count", "c", 1, "Number of valid addresses to generate before exiting, or 0 for infinite.")
-
 }
 
 func findSubstring(substring string, index int, wildcardIndex bool, count int) {
